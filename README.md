@@ -6,7 +6,7 @@ Group project in Machine Learning for Network Science Class at CentraleSupelec
 This repository contains our work during the final project within the Machine Learning in Network Science class at CentraleSupélec. We chose to continue working on a link prediction task (as in previous Kaggle challenge, our repository accessible via this [link](https://github.com/lassefschmidt/Network-Science_Challenge)). This time we will however apply what we learned on the CORA dataset. One notable difference to the previous Kaggle challenge is that the CORA dataset represents a directed graph while the Kaggle challenge covered link prediction on undirected graphs.
 
 ## About the Dataset
-The CORA dataset consists of 2,708 scientific publications from the domain of Machine Learning and each publication is classified into one of the following seven classes:
+The CORA data contains bibliographic records of papers. It was originally published by Andrew McCallum in 2000 and since then various versions of the data set have been used. In this project, we will be using the version provided by Sen et al in 2008 (accessible via this [link](https://linqs.org/datasets/#cora)), which consists of 2,708 scientific publications from the domain of Machine Learning and in which each publication is classified into one of the following seven classes:
 1. case based
 2. genetic algorithms
 3. neural networks
@@ -19,7 +19,7 @@ In addition, each publication in the dataset is described by a 0/1-valued word v
 
 Lastly, the network contains 5,429 links, where each link corresponds to a citation (target node -> source node). The papers were selected in a way such that in the final corpus every paper cites or is cited by at least one other paper.
 
-The dataset was accessed via this [link](https://linqs.org/datasets/#cora). To our knowledge no official train test split exists for the CORA dataset and we will build our test set by randomly removing edges from the original graph and adding the same amount of none-edges.
+To our knowledge no official train test split exists for the CORA dataset and we will build our test set by randomly removing edges from the original graph and adding the same amount of none-edges.
 
 ## References
 1. P. Sen, G. M. Namata, M. Bilgic, L. Getoor, B. Gallagher, and T. Eliassi-Rad,
