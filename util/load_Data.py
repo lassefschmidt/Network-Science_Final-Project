@@ -15,7 +15,7 @@ def load_raw():
     )
 
     # read edgelist
-    edgelist = pd.read_csv("data/cora.cites", sep = "\t", header = None).rename(columns = {0: "source", 1: "target"})
+    edgelist = pd.read_csv("data/cora.cites", sep = "\t", header = None).rename(columns = {0: "target", 1: "source"})
 
     # reindex all nodes to go from 0, ..., number of nodes
     node_idx_mapping = {old: new for new, old in node_info.reset_index()["node"].items()}
@@ -41,4 +41,4 @@ def load_raw():
 
 
 def init_nx_graph(edgelist):
-    return nx.DiGraph([(v, u) for [u,v] in edgelist.values])
+    return nx.DiGraph([(u, v) for u, v in zip(edgelist.source.values, edgelist.target.values)])
