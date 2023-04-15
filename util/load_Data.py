@@ -88,15 +88,7 @@ def generate_pos_edges(G, edgelist, val_ratio, test_ratio, seed=42):
             G_train.remove_edge(source, target)
             G_trainval.remove_edge(source, target)
             train_pos_edges = train_pos_edges.drop(index = random_edge, inplace = False)
-        #####    ###error seems to be related to this line
-            test_pos_edges.at[random_edge, 'target'] = target
-            test_pos_edges.at[random_edge, 'source'] = source
-            '''
-            # Create a new DataFrame with the same columns as test_pos_edges and the new row as 'int64'
-            new_row = pd.DataFrame({'source': [source], 'target': [target]}, index=[random_edge], dtype='int64')
-            # Append the new row to test_pos_edges while keeping the dtypes
-            test_pos_edges = test_pos_edges.append(new_row)
-            '''
+            test_pos_edges.loc[random_edge] = [target, source]
             removed += 1
         else:
             continue
@@ -118,29 +110,52 @@ def generate_pos_edges(G, edgelist, val_ratio, test_ratio, seed=42):
 
     return G_train, G_trainval, train_pos_edges, val_pos_edges, test_pos_edges
 
+# Generates combination of nodes with a limit
+def limited_combinations(iterable, r, limit):
+    count = 0
+    for combination in itertools.combinations(iterable, r):
+        if count >= limit:
+            break
+        count += 1
+        yield combination
+
 def generate_neg_edges(edgelist, num_train, num_val, num_test, seed=42):
     """
     Generate non-existing edges for train, validation, and test sets.
     """
     # Get unique nodes from the edgelist
     nodes = set(edgelist.source).union(edgelist.target)
+    #limit to combinations it can be arbitratry but more than 10858
+    limit = 30000
 
-    # Generate all possible combinations of nodes
-    all_edges = pd.DataFrame(list(itertools.combinations(nodes, 2)), columns=['source', 'target'])
-
+    # Generate possible combinations of nodes
+    all_edges = pd.DataFrame(list(limited_combinations(nodes, 2, limit)), columns=['source', 'target'])
     # Filter out existing edges
     existing_edges = set(map(tuple, edgelist[['source', 'target']].values))
     all_edges['is_existing'] = all_edges.apply(lambda x: (x.source, x.target) in existing_edges, axis=1)
     non_existing_edges = all_edges[~all_edges.is_existing].drop('is_existing', axis=1)
+    print(f"Number of non-existing edges generated: {len(non_existing_edges)}")
 
+    # Keeping only the number of non_existing_edges required for our splitting procedure
+    # equal to the numebr of edges in the original graph
+    non_existing_edges = non_existing_edges[:5429]
+
+    # Defining train, val and test ratios
+    train_size = num_train/(num_train + num_val + num_test)
+    val_size = num_val/(num_val + num_test)
     # Split non-existing edges into train, validation, and test sets
-    val_test_edges, train_neg_edges = train_test_split(non_existing_edges, train_size=num_train, random_state=seed)
-    val_neg_edges, test_neg_edges = train_test_split(val_test_edges, train_size=num_val, test_size=num_test, random_state=seed)
+    train_neg_edges, val_test_edges = train_test_split(non_existing_edges, train_size=train_size, random_state=seed)
+    val_neg_edges, test_neg_edges = train_test_split(val_test_edges, train_size=val_size, random_state=seed)
 
     # adding labels
     train_neg_edges['y'] = 0
     val_neg_edges['y'] = 0
     test_neg_edges['y'] = 0
+    # print key stats
+    print(f"Number of negative edges for training: {len(train_neg_edges)}")
+    print(f"Number of negative edges for validation: {len(val_neg_edges)}")
+    print(f"Number of negative edges for test: {len(test_neg_edges)}")
+
     return train_neg_edges, val_neg_edges, test_neg_edges
 
 def load(val_ratio = 0.2, test_ratio = 0.1):
@@ -169,7 +184,7 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
     # sort edge lists (so lower numbered node is always in first column)
     # to change
     
- ####   #here second problem
+#here second problem
     train = train[["y","source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
     val = train[["y","source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
     test  = test[["y","source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
