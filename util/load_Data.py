@@ -88,16 +88,27 @@ def generate_pos_edges(G, edgelist, val_ratio, test_ratio, seed=42):
             G_train.remove_edge(source, target)
             G_trainval.remove_edge(source, target)
             train_pos_edges = train_pos_edges.drop(index = random_edge, inplace = False)
-            test_pos_edges.loc[random_edge] = [target, source]
+        #####    ###error seems to be related to this line
+            test_pos_edges.at[random_edge, 'target'] = target
+            test_pos_edges.at[random_edge, 'source'] = source
+            '''
+            # Create a new DataFrame with the same columns as test_pos_edges and the new row as 'int64'
+            new_row = pd.DataFrame({'source': [source], 'target': [target]}, index=[random_edge], dtype='int64')
+            # Append the new row to test_pos_edges while keeping the dtypes
+            test_pos_edges = test_pos_edges.append(new_row)
+            '''
             removed += 1
         else:
             continue
-    
+    #type casting
+    val_pos_edges['source'] = test_pos_edges['source'].astype('int64')
+    val_pos_edges['target'] = test_pos_edges['target'].astype('int64')
+    test_pos_edges['source'] = test_pos_edges['source'].astype('int64')
+    test_pos_edges['target'] = test_pos_edges['target'].astype('int64')
     # adding labels
     train_pos_edges['y'] = 1
     val_pos_edges['y'] = 1
     test_pos_edges['y'] = 1
-
     # print key stats
     print(f"Number of positive edges for training: {len(train_pos_edges)}")
     print(f"Number of positive edges for validation: {len(val_pos_edges)}")
@@ -151,16 +162,18 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
     train_neg_edges, val_neg_edges, test_neg_edges = generate_neg_edges(edgelist, len(train_pos_edges), len(val_pos_edges), len(test_pos_edges))
 
     # append to dataframe
-    train = pd.concat([train_pos_edges, train_neg_edges]).sort_index()
-    val = pd.concat([val_pos_edges, val_neg_edges]).sort_index()
-    test = pd.concat([test_pos_edges, test_neg_edges]).sort_index()
+    train = pd.concat([train_pos_edges, train_neg_edges], axis=0).sort_index()
+    val = pd.concat([val_pos_edges, val_neg_edges], axis=0).sort_index()
+    test = pd.concat([test_pos_edges, test_neg_edges], axis=0).sort_index()
 
     # sort edge lists (so lower numbered node is always in first column)
     # to change
-    train = train[["source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
-    val = train[["source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
-    test  = test[[ "source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
-
+    
+ ####   #here second problem
+    train = train[["y","source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
+    val = train[["y","source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
+    test  = test[["y","source", "target"]].apply(lambda x: np.sort(x), axis = 1, raw = True)
+    
     return (G, G_train, G_trainval, node_info, train, val, test)
 
 def split_frame(df):

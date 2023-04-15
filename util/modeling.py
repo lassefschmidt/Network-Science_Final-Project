@@ -40,7 +40,7 @@ def save_test_preds(test, test_tf, preds):
         # convert to int
         .assign(Predicted = lambda df_: df_.Predicted.astype(int))
         # remove useless columns
-        .drop(["node1", "node2"], axis = 1, inplace = False)
+        .drop(["source", "target"], axis = 1, inplace = False)
     )
 
     # save predictions
