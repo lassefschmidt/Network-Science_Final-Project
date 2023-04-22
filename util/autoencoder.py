@@ -142,7 +142,8 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
                 test_edges = torch.tensor(
                     test_tf.values
                 ).T)
-
+    
+    trainval_tf.drop(columns = ['train_mask', 'val_mask'], axis = 1, inplace  = True)
     # preprocess data
     data = T.NormalizeFeatures()(data)
 

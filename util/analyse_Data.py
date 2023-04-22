@@ -156,3 +156,24 @@ def get_decision_rules(edgelist, node_info):
         rule_values_dict[(source, target)] = {"support": supp, "confidence": conf, "lift": lift}
 
     return kws_per_node, rule_finder_dict, rule_values_dict
+
+def plot_corr_matrix(df):
+    """
+    plot absolute correlation matrix of given pandas dataframe (all columns in df must be numerical!)
+    """
+    # plot correlation matrix
+    corr_matrix = np.tril(np.abs(np.rint(np.array(df.corr()) * 100)), k = -1)
+
+    # create labels
+    labels = [f"{idx}: {col}" for idx, col in enumerate(df.columns)]
+
+    # plot confusion matrix
+    fig, ax = plt.subplots(figsize=(6,4))
+    cm = ConfusionMatrixDisplay(corr_matrix,
+                                display_labels = labels)
+    cm.plot(ax = ax, xticks_rotation = 'vertical', cmap = plt.cm.Blues, text_kw = {"color": "w", "fontsize": 6})
+    ax.set_xticklabels([i for i in range(len(df.columns))])
+    ax.tick_params(axis='x', labelrotation = 0)
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_title("Absolute correlation matrix of edge based features")

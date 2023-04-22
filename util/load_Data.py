@@ -200,7 +200,6 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
     # remove completely empty columns from node_info
     empty_cols = node_info.columns[node_info.nunique() == 1].values
     node_info = node_info.drop(columns = empty_cols, inplace = False)
-    
     # build graph
     G = init_nx_graph(edgelist)
 
@@ -261,7 +260,7 @@ def load_transform(val_ratio = 0.2, test_ratio = 0.1, n2v_train=False):
     helper function that performs all further pre-processsing necessary for classical ML approaches
     """
     (G, G_train, G_trainval, node_info, train_tf, val_tf, trainval_tf, test_tf) = load(val_ratio, test_ratio)
-
+    trainval_tf.drop(columns = ['train_mask', 'val_mask'], axis = 1, inplace  = True)
    # read json files for rank algorithms
     with open("data/simrank_test.json", "r") as file:
         simrank_test = json.load(file)
