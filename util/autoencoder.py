@@ -54,48 +54,99 @@ class Encoder(torch.nn.Module):
         x = self.propagate(x, edge_index)
         return x, x_
     
+def enrich_node_info(G, node_info):
+
+    # generate random walks for node2vec
+    node2vec = Node2Vec(G, dimensions=4, walk_length=80, num_walks=10, workers=1, p=1.25, q=0.25)
+
+    # compute graph-based node features
+    DCT = nx.degree_centrality(G)
+    BCT = nx.betweenness_centrality(G)
+    KCT = nx.katz_centrality(G, alpha = 0.01)
+    PR  = nx.pagerank(G)
+    HUB, AUTH = nx.hits(G)
+    N2V = node2vec.fit(window=10)
+
+    return (node_info
+        .assign(KEYS = lambda df_: df_.sum(axis = 1))
+        .assign(DCT  = lambda df_: [DCT[node]  for node in df_.index])
+        .assign(BCT  = lambda df_: [BCT[node]  for node in df_.index])
+        .assign(KCT  = lambda df_: [KCT[node]  for node in df_.index])
+        .assign(PR   = lambda df_: [PR[node]   for node in df_.index])
+        .assign(HUB  = lambda df_: [HUB[node]  for node in df_.index])
+        .assign(AUTH = lambda df_: [AUTH[node] for node in df_.index])
+        .assign(N2V  = lambda df_: [N2V.wv[node][0]  for node in df_.index])
+        .assign(N2V  = lambda df_: [N2V.wv[node][1]  for node in df_.index])
+        .assign(N2V  = lambda df_: [N2V.wv[node][2]  for node in df_.index])
+        .assign(N2V  = lambda df_: [N2V.wv[node][3]  for node in df_.index])
+    )
+    
 
 def load(val_ratio = 0.2, test_ratio = 0.1):
     # load data
-    node_info, edgelist, class_to_idx_dict, idx_to_class_dict = loadData.load_raw()
-    G = loadData.init_nx_graph(edgelist)
-    #UPDATE THIS LINE
-    (G, G_train, G_trainval, node_info, train, val, test) = loadData.load(val_ratio, test_ratio)
     
+    (G, G_train, G_trainval, node_info, train_tf, val_tf, trainval_tf, test_tf) = loadData.load(val_ratio, test_ratio)
+        # get train and validation masks
+    print(f"sum of train pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['train_mask'] == 1)).sum()}")
+    print(f"sum of train neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['train_mask'] == 1)).sum()}")
+    print(f"sum of val pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['val_mask'] == 1)).sum()}")
+    print(f"sum of val neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['val_mask'] == 1)).sum()}")
+    
+    """trainval_tf = (trainval_tf
+        .assign(train_mask = lambda df_: [True if idx in train_tf.index else False for idx in df_.index])
+        .assign(val_mask = lambda df_: ~df_.train_mask)
+    )"""
+
+    print(f"sum of train pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['train_mask'] == 1)).sum()}")
+    print(f"sum of train neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['train_mask'] == 1)).sum()}")
+    print(f"sum of val pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['val_mask'] == 1)).sum()}")
+    print(f"sum of val neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['val_mask'] == 1)).sum()}")
+    # enrich node_info
+    print("Enriching node features...")
+    node_info_train = enrich_node_info(G_train, node_info)
+    node_info_trainval = enrich_node_info(G_trainval, node_info)
     # initialise PyTorch Geometric Dataset
     print("Create PyTorch Geometric dataset...")
     data = Data(
                 # node features
-                x = torch.tensor(node_info.values, dtype = torch.float32),
+                x = torch.tensor(node_info_train.values, dtype = torch.float32),
+                x_trainval = torch.tensor(node_info_trainval.values, dtype = torch.float32),
                 # train edges
                 train_edges = torch.tensor(
-                    train[['source', 'target']].values
+                    trainval_tf.loc[trainval_tf.train_mask == 1][["source", "target"]].values
                 ).T,
                 train_pos_edges = torch.tensor(
-                    train.loc[train.y == 1][['source', 'target']].values
+                    trainval_tf.loc[(trainval_tf.y == 1) & (trainval_tf.train_mask == 1)][["source", "target"]].values
                 ).T,
                 train_neg_edges = torch.tensor(
-                    train.loc[train.y == 0][['source', 'target']].values
+                    trainval_tf.loc[(trainval_tf.y == 0) & (trainval_tf.train_mask == 1)][["source", "target"]].values
                 ).T,
                 # val edges
                 val_edges = torch.tensor(
-                    val[['source', 'target']].values
+                    trainval_tf.loc[trainval_tf.val_mask == 1][["source", "target"]].values
                 ).T,
                 val_pos_edges = torch.tensor(
-                    val.loc[val.y == 1][['source', 'target']].values
+                    trainval_tf.loc[(trainval_tf.y == 1) & (trainval_tf.val_mask == 1)][["source", "target"]].values
                 ).T,
                 val_neg_edges = torch.tensor(
-                    val.loc[val.y == 0][['source', 'target']].values
+                    trainval_tf.loc[(trainval_tf.y == 0) & (trainval_tf.val_mask == 1)][["source", "target"]].values
+                ).T,
+                # trainval edges                
+                trainval_edges = torch.tensor(
+                    trainval_tf[["source", "target"]].values
+                ).T,
+                trainval_pos_edges = torch.tensor(
+                    trainval_tf.loc[trainval_tf.y == 1][["source", "target"]].values
                 ).T,
                 # test edges
                 test_edges = torch.tensor(
-                    test[['source', 'target']].values
+                    test_tf.values
                 ).T)
 
     # preprocess data
     data = T.NormalizeFeatures()(data)
 
-    return data, (G, G_train, G_trainval, node_info, train, val, test)
+    return data, (G, G_train, G_trainval, node_info, train_tf, val_tf, trainval_tf, test_tf)
 
 def get_device(model = None):
     # where we want to run the model (so this code can run on cpu, gpu, multiple gpus depending on system)

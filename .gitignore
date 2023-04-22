@@ -130,3 +130,5 @@ dmypy.json
 
 # Custom files
 test_split.py
+
+ray_results

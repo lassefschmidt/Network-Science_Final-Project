@@ -1,0 +1,15 @@
+{
+  "data": "Data(x=[2708, 1441], x_trainval=[2708, 1441], train_edges=[2, 7604], train_pos_edges=[2, 3802], train_neg_edges=[2, 3802], val_edges=[2, 2170], val_pos_edges=[2, 1085], val_neg_edges=[2, 1085], trainval_edges=[2, 9774], trainval_pos_edges=[2, 4887], test_edges=[3, 1084])",
+  "dropout": 0,
+  "enc_channels": 64,
+  "lr": 0.001,
+  "max_epochs": 50,
+  "model": "VGNAE",
+  "num_prop": 4,
+  "ray": true,
+  "save": true,
+  "scaling": 1.8,
+  "teleport": 0,
+  "verbose": false,
+  "wd": 0
+}
