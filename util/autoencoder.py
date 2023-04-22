@@ -92,6 +92,7 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
     print(f"sum of val pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['val_mask'] == 1)).sum()}")
     print(f"sum of val neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['val_mask'] == 1)).sum()}")
     
+    #removed
     """trainval_tf = (trainval_tf
         .assign(train_mask = lambda df_: [True if idx in train_tf.index else False for idx in df_.index])
         .assign(val_mask = lambda df_: ~df_.train_mask)
@@ -143,7 +144,7 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
                     test_tf.values
                 ).T)
     
-    trainval_tf.drop(columns = ['train_mask', 'val_mask'], axis = 1, inplace  = True)
+    #trainval_tf.drop(columns = ['train_mask', 'val_mask'], axis = 1, inplace  = True)
     # preprocess data
     data = T.NormalizeFeatures()(data)
 
