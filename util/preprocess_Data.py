@@ -326,16 +326,18 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
         elif key in pagerank_trainval.keys():
             return pagerank_trainval[key]
 
+    # create an undirected copy of the graph 
+    G_undirected = G.to_undirected()
     # compute graph-based node features
     DCT = nx.degree_centrality(G)
     BCT = nx.betweenness_centrality(G)
     # compute graph-based edge features
     ebunch = [(u, v) for u, v in zip(edgelist.source, edgelist.target)]
-    #RA  = transform_generator_to_dict(nx.resource_allocation_index(G, ebunch))
-    #JCC = transform_generator_to_dict(nx.jaccard_coefficient(G, ebunch))
-    #AA  = transform_generator_to_dict(nx.adamic_adar_index(G, ebunch))
-    #PA  = transform_generator_to_dict(nx.preferential_attachment(G, ebunch))
-    #CNC  = transform_generator_to_dict(nx.common_neighbor_centrality(G, ebunch))
+    RA  = transform_generator_to_dict(nx.resource_allocation_index(G_undirected, ebunch))
+    JCC = transform_generator_to_dict(nx.jaccard_coefficient(G_undirected, ebunch))
+    AA  = transform_generator_to_dict(nx.adamic_adar_index(G_undirected, ebunch))
+    PA  = transform_generator_to_dict(nx.preferential_attachment(G_undirected, ebunch))
+    CNC  = transform_generator_to_dict(nx.common_neighbor_centrality(G_undirected, ebunch))
     PR1 = transform_generator_to_dict(pagerank_avg(G, edgelist))
     PR2 = transform_generator_to_dict(pagerank_sqdiff(G, edgelist))
     katz_idx = get_kat_idx_edges(G, beta = 0.05, max_power = 6)
@@ -352,7 +354,7 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
         .assign(target_DCT  = lambda df_: [DCT[node] for node in df_.target])
         .assign(BCT_diff    = lambda df_: [BCT[v]- BCT[u] for u, v in zip(df_.source, df_.target)])
         # local edge features
-        #.assign(graph_distance = lambda df_: [nx.shortest_path_length(G, source = u, target = v) for u, v in zip(df_.source, df_.target)])
+        #.assign(graph_distance = lambda df_: [nx.shortest_path_length(G_undirected, source = u, target = v) for u, v in zip(df_.source, df_.target)])
         #.assign(CNC    = lambda df_: [CNC[edge] for edge in zip(df_.source, df_.target)])
         #.assign(RA     = lambda df_: [RA[edge]  for edge in zip(df_.source, df_.target)])
         #.assign(CF_RA  = lambda df_: [enhance(edge,  RA, nx.resource_allocation_index, "CF") for edge in zip(df_.source, df_.target)])
@@ -363,10 +365,10 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
         #.assign(PA_log = lambda df_: np.log(df_.PA))
         #.assign(CF_PA  = lambda df_: [enhance(edge,  PA, nx.preferential_attachment, "CF") for edge in zip(df_.source, df_.target)])
         #.assign(SCF_PA = lambda df_: [enhance(edge, PA, nx.preferential_attachment, "SCF") for edge in zip(df_.source, df_.target)])
-        #.assign(SaI    = get_sknetwork_features(G, ebunch, "SaltonIndex"))
-        #.assign(SoI    = get_sknetwork_features(G, ebunch, "SorensenIndex"))
-        #.assign(HProm  = get_sknetwork_features(G, ebunch, "HubPromotedIndex"))
-        #.assign(HDem   = get_sknetwork_features(G, ebunch, "HubDepressedIndex"))
+        .assign(SaI    = get_sknetwork_features(G_undirected, ebunch, "SaltonIndex"))
+        .assign(SoI    = get_sknetwork_features(G_undirected, ebunch, "SorensenIndex"))
+        .assign(HProm  = get_sknetwork_features(G_undirected, ebunch, "HubPromotedIndex"))
+        .assign(HDem   = get_sknetwork_features(G_undirected, ebunch, "HubDepressedIndex"))
         # global edge features
         .assign(katz_idx = lambda df_: [katz_idx.get((u, v), 0) for u, v in zip(df_.source, df_.target)])
         .assign(sim_rank = lambda df_: [read_simrank_json(u, v) for u, v in zip(df_.source, df_.target)])

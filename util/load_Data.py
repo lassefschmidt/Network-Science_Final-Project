@@ -179,18 +179,6 @@ def generate_neg_edges(edgelist, num_train, num_val, num_test, seed=42):
 
     return train_neg_edges, val_neg_edges, test_neg_edges
 
-def split_frame(df):
-    # split into X and y and drop node columns
-    if "y" in df:
-        y = df.loc[:, "y"]
-        X = copy.deepcopy(df)
-        X.drop(["source", "target", "y"], axis = 1, inplace = True)
-        return X, y
-    else:
-        X = copy.deepcopy(df)
-        X.drop(["source", "target"], axis = 1, inplace = True)
-        return X
-
 def load(val_ratio = 0.2, test_ratio = 0.1):
     """
     helper function that performs all loading + data cleaning (direct input for deep learning)
@@ -255,6 +243,18 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
     
     return (G, G_train, G_trainval, node_info, train, val, trainval, test)
 
+def split_frame(df):
+    # split into X and y and drop node columns
+    if "y" in df:
+        y = df.loc[:, "y"]
+        X = copy.deepcopy(df)
+        X.drop(["source", "target", "y"], axis = 1, inplace = True)
+        return X, y
+    else:
+        X = copy.deepcopy(df)
+        X.drop(["source", "target"], axis = 1, inplace = True)
+        return X
+
 def load_transform(val_ratio = 0.2, test_ratio = 0.1, n2v_train=False):
     """
     helper function that performs all further pre-processsing necessary for classical ML approaches
@@ -291,12 +291,12 @@ def load_transform(val_ratio = 0.2, test_ratio = 0.1, n2v_train=False):
     # split
     X_train, y_train = split_frame(train_tf)
     X_val, y_val     = split_frame(val_tf)
-    X_test, y_test           = split_frame(test_tf)
+    X_test, y_test   = split_frame(test_tf)
 
     # merge to get trainval data
     X_trainval = pd.concat([X_train, X_val])
     y_trainval = pd.concat([y_train, y_val])
 
-    return (G, G_train, node_info, train_tf, val_tf, trainval_tf, test_tf, X_train, y_train, X_val, y_val, X_trainval, y_trainval, X_test, y_test)
+    return (G, G_train, G_trainval, node_info, train_tf, val_tf, trainval_tf, test_tf, X_train, y_train, X_val, y_val, X_trainval, y_trainval, X_test, y_test)
 
 
