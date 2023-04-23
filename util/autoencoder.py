@@ -87,10 +87,6 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
     
     (G, G_train, G_trainval, node_info, train_tf, val_tf, trainval_tf, test_tf) = loadData.load(val_ratio, test_ratio)
         # get train and validation masks
-    print(f"sum of train pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['train_mask'] == 1)).sum()}")
-    print(f"sum of train neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['train_mask'] == 1)).sum()}")
-    print(f"sum of val pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['val_mask'] == 1)).sum()}")
-    print(f"sum of val neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['val_mask'] == 1)).sum()}")
     
     #removed
     """trainval_tf = (trainval_tf
@@ -98,10 +94,6 @@ def load(val_ratio = 0.2, test_ratio = 0.1):
         .assign(val_mask = lambda df_: ~df_.train_mask)
     )"""
 
-    print(f"sum of train pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['train_mask'] == 1)).sum()}")
-    print(f"sum of train neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['train_mask'] == 1)).sum()}")
-    print(f"sum of val pos edges: {((trainval_tf['y'] == 1) & (trainval_tf['val_mask'] == 1)).sum()}")
-    print(f"sum of val neg edges: {((trainval_tf['y'] == 0) & (trainval_tf['val_mask'] == 1)).sum()}")
     # enrich node_info
     print("Enriching node features...")
     node_info_train = enrich_node_info(G_train, node_info)

@@ -261,7 +261,7 @@ def load_transform(val_ratio = 0.2, test_ratio = 0.1, n2v_train=False):
     """
     (G, G_train, G_trainval, node_info, train_tf, val_tf, trainval_tf, test_tf) = load(val_ratio, test_ratio)
     trainval_tf.drop(columns = ['train_mask', 'val_mask'], axis = 1, inplace  = True)
-   # read json files for rank algorithms
+    # read json files for rank algorithms
     with open("data/simrank_test.json", "r") as file:
         simrank_test = json.load(file)
     with open("data/simrank_trainval.json", "r") as file:

@@ -262,6 +262,9 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
     HITS algorithm, eigenvector/katz/common-neighbor/load centrality, voterank, CF/SCF enhanced RA (huge overfit),
     dispersion, cosine similarity of embeddings
     """
+    # create an undirected copy of the graph 
+    G_undirected = G.to_undirected()
+
     # helper function to transform networkx generator objects into feature dicts
     def transform_generator_to_dict(generator_obj):
         result = dict()
@@ -273,8 +276,8 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
     def enhance_CF(edge, feature_dict, feature_func):
         (u, v) = edge
         # get neighbors of each node
-        neighbors_u = [(n, v) for n in G.neighbors(u) if n != v]
-        neighbors_v = [(n, u) for n in G.neighbors(v) if n != u]
+        neighbors_u = [(n, v) for n in G_undirected.neighbors(u) if n != v]
+        neighbors_v = [(n, u) for n in G_undirected.neighbors(v) if n != u]
         # compute similarity of neighbors of source (target) with target (source)
         sim_neighbors_u_to_v = sum([get_sim(edge, feature_dict, feature_func) for edge in neighbors_u])
         sim_neighbors_v_to_u = sum([get_sim(edge, feature_dict, feature_func) for edge in neighbors_v])
@@ -288,14 +291,14 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
     
     def get_sim(edge, feature_dict, feature_func):
         if edge not in feature_dict:
-            feature_dict[edge] = sum([value for (_, _, value) in feature_func(G, [edge])])
+            feature_dict[edge] = sum([value for (_, _, value) in feature_func(G_undirected, [edge])])
         return feature_dict[edge]
     
     def enhance(edge, feature_dict, feature_func, enhance_type):
         (u, v) = edge
         # remove current edge to avoid overfitting (if it exists)
         try:
-            G.remove_edge(u, v)
+            G_undirected.remove_edge(u, v)
             edge_removed = True
         except nx.NetworkXError:
             edge_removed = False
@@ -308,7 +311,7 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
 
         # add current edge back to graph if it existed
         if edge_removed:
-            G.add_edge(u, v)
+            G_undirected.add_edge(u, v)
 
         return result
 
@@ -326,8 +329,6 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
         elif key in pagerank_trainval.keys():
             return pagerank_trainval[key]
 
-    # create an undirected copy of the graph 
-    G_undirected = G.to_undirected()
     # compute graph-based node features
     DCT = nx.degree_centrality(G)
     BCT = nx.betweenness_centrality(G)
@@ -354,17 +355,17 @@ def feature_extractor(edgelist, G, node_info, simrank_test, simrank_trainval, pa
         .assign(target_DCT  = lambda df_: [DCT[node] for node in df_.target])
         .assign(BCT_diff    = lambda df_: [BCT[v]- BCT[u] for u, v in zip(df_.source, df_.target)])
         # local edge features
-        #.assign(graph_distance = lambda df_: [nx.shortest_path_length(G_undirected, source = u, target = v) for u, v in zip(df_.source, df_.target)])
-        #.assign(CNC    = lambda df_: [CNC[edge] for edge in zip(df_.source, df_.target)])
-        #.assign(RA     = lambda df_: [RA[edge]  for edge in zip(df_.source, df_.target)])
-        #.assign(CF_RA  = lambda df_: [enhance(edge,  RA, nx.resource_allocation_index, "CF") for edge in zip(df_.source, df_.target)])
-        #.assign(SCF_RA = lambda df_: [enhance(edge, RA, nx.resource_allocation_index, "SCF") for edge in zip(df_.source, df_.target)])
-        #.assign(JCC    = lambda df_: [JCC[edge] for edge in zip(df_.source, df_.target)])
-        #.assign(AA     = lambda df_: [AA[edge]  for edge in zip(df_.source, df_.target)])
-        #.assign(PA     = lambda df_: [PA[edge]  for edge in zip(df_.source, df_.target)])
-        #.assign(PA_log = lambda df_: np.log(df_.PA))
-        #.assign(CF_PA  = lambda df_: [enhance(edge,  PA, nx.preferential_attachment, "CF") for edge in zip(df_.source, df_.target)])
-        #.assign(SCF_PA = lambda df_: [enhance(edge, PA, nx.preferential_attachment, "SCF") for edge in zip(df_.source, df_.target)])
+        #.assign(graph_distance = lambda df_: [nx.shortest_path_length(G, source = u, target = v) for u, v in zip(df_.source, df_.target)])
+        .assign(CNC    = lambda df_: [CNC[edge] for edge in zip(df_.source, df_.target)])
+        .assign(RA     = lambda df_: [RA[edge]  for edge in zip(df_.source, df_.target)])
+        .assign(CF_RA  = lambda df_: [enhance(edge,  RA, nx.resource_allocation_index, "CF") for edge in zip(df_.source, df_.target)])
+        .assign(SCF_RA = lambda df_: [enhance(edge, RA, nx.resource_allocation_index, "SCF") for edge in zip(df_.source, df_.target)])
+        .assign(JCC    = lambda df_: [JCC[edge] for edge in zip(df_.source, df_.target)])
+        .assign(AA     = lambda df_: [AA[edge]  for edge in zip(df_.source, df_.target)])
+        .assign(PA     = lambda df_: [PA[edge]  for edge in zip(df_.source, df_.target)])
+        .assign(PA_log = lambda df_: np.log(df_.PA))
+        .assign(CF_PA  = lambda df_: [enhance(edge,  PA, nx.preferential_attachment, "CF") for edge in zip(df_.source, df_.target)])
+        .assign(SCF_PA = lambda df_: [enhance(edge, PA, nx.preferential_attachment, "SCF") for edge in zip(df_.source, df_.target)])
         .assign(SaI    = get_sknetwork_features(G_undirected, ebunch, "SaltonIndex"))
         .assign(SoI    = get_sknetwork_features(G_undirected, ebunch, "SorensenIndex"))
         .assign(HProm  = get_sknetwork_features(G_undirected, ebunch, "HubPromotedIndex"))
