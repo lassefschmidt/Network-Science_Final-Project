@@ -22,18 +22,23 @@ Lastly, the network contains 5,429 links, where each link corresponds to a citat
 To our knowledge no official train test split exists for the CORA data set and we will build our test set by randomly removing edges from the original graph and adding the same amount of none-edges.
 
 ## References
-1. P. Sen, G. M. Namata, M. Bilgic, L. Getoor, B. Gallagher, and T. Eliassi-Rad,
-“Collective Classification in Network Data,” AAAI, 29(3), 93-106 (2008).
-2. E. C. Mutlu, T. Oghaz, A. Rajabi, and I. Garibay, “Review on learning
-and extracting graph features for link prediction,” Mach. Learn. Knowl.
-Extr. 2, 672–704 (2020).
-3. S. J. Ahn and M. Kim, “Variational graph normalized AutoEncoders,” in
+1. S. J. Ahn and M. Kim, “Variational graph normalized AutoEncoders,” in
 Proceedings of the 30th ACM International Conference on Information
 &amp Knowledge Management, (ACM, 2021).
-4. Y.-L. Lee and T. Zhou, “Collaborative filtering approach to link predic-
+2. X. P. D. N. M. Yu Tian, Long Zhao, “Rethinking kernel methods for node
+representation learning on graphs,” NeurIPS (2019).
+3. I. D. Liming Pan, Cheng Shi, “Neural link prediction with walk pooling,”
+ICLR (2022).
+4. T. Uc ̧ar, “Ness: Learning node embeddings from static subgraphs,”
+ICLR (2022).
+5. E. C. Mutlu, T. Oghaz, A. Rajabi, and I. Garibay, “Review on learning
+and extracting graph features for link prediction,” Mach. Learn. Knowl.
+Extr. 2, 672–704 (2020).
+6. Y.-L. Lee and T. Zhou, “Collaborative filtering approach to link predic-
 tion,” Phys. A: Stat. Mech. its Appl. 578, 126107 (2021).
-5. A. Papadimitriou, P. Symeonidis, and Y. Manolopoulos, “Fast and
-accurate link prediction in social networking systems,” J. Syst. Softw.85, 2119–2132 (2012). Selected papers from the 2011 Joint Working
+7. A. Papadimitriou, P. Symeonidis, and Y. Manolopoulos, “Fast and
+accurate link prediction in social networking systems,” J. Syst. Softw.
+85, 2119–2132 (2012). Selected papers from the 2011 Joint Working
 IEEE/IFIP Conference on Software Architecture (WICSA 2011).
-6. A. Grover and J. Leskovec, “node2vec: Scalable feature learning for
-networks,” CoRR. abs/1607.00653 (2016)
+8. A. Grover and J. Leskovec, “node2vec: Scalable feature learning for
+networks,” CoRR. abs/1607.00653 (2016).
